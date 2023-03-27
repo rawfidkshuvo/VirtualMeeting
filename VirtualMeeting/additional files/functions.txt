@@ -1,0 +1,48 @@
+CREATE OR REPLACE FUNCTION public.student_login(
+	sname character varying,
+	spass character varying)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE 
+	s_id integer;
+BEGIN
+	s_id := (SELECT student_id FROM students where student_username = sname AND password = spass);
+	return s_id;
+END;
+$BODY$;
+
+
+
+
+
+
+
+
+CREATE OR REPLACE FUNCTION public.change_status_overload_group(
+	group_id integer)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	no_of_student int;
+	gp_limit int;
+BEGIN
+	no_of_student = (SELECT COUNT(*) FROM group_members 
+		WHERE group_members.study_group_id = group_id);
+	gp_limit = (select study_groups.group_member_limit from study_groups where study_groups.study_group_id = group_id);
+	if(no_of_student >= gp_limit) then
+		UPDATE study_groups
+		SET  status = '0'
+		where study_groups.study_group_id = group_id;
+	else 
+		UPDATE study_groups
+		SET  status = '1'
+		where study_groups.study_group_id = group_id;
+	end if;
+END;
+$BODY$;
